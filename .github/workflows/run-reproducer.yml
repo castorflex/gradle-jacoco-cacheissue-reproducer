@@ -11,7 +11,21 @@ jobs:
     - uses: actions/setup-java@v2
       with:
         distribution: 'zulu'
-        java-version: 11
+        java-version: 17
     - uses: gradle/gradle-build-action@v2
       with:
         arguments: help --info
+    - name: Execute Gradle jacocoTestReport
+      run: ./gradlew jacocoTestReport --console=plain --build-cache
+    - name: Delete jacoco execution data file
+      run: rm -r app/build/jacoco/
+    - name: Execute Gradle jacocoTestReport from cache
+      run: ./gradlew jacocoTestReport --console=plain --build-cache
+    - name: assert jacoco execution data file is here
+      run: |
+        if [ ! -f "app/build/jacoco/testReleaseUnitTest.exec" ]; then
+          echo "Jacoco file missing"
+          exit 1
+        else
+          echo "Jacoco file found"
+        fi
