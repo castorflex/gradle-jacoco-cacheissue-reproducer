@@ -9,7 +9,7 @@ dependencies {
 }
 
 tasks.withType(Test::class.java).configureEach {
-    allJvmArgs = allJvmArgs + listOf("-Xmx4192M")
+//    allJvmArgs = allJvmArgs + listOf("-Xmx4192M")
 }
 
 tasks.named("jacocoTestReport").configure {
