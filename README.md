@@ -1,27 +1,34 @@
-| :memo: | There is a matching reproducer for the Groovy DSL [here](https://github.com/gradle/gradle-issue-reproducer/tree/groovy-dsl) |
-|---|---|
+# Overview
 
-# Gradle issue reproducer
+This is a sample app to demonstrate an issue with jacoco and the Gradle cache.
 
-This is template repository to create reproducer projects for Gradle issues.
-The template contains a GitHub Action definition that runs a Gradle build upon each code change.
-To quickly learn how it works check the following screencast:
+When overriding the Test task's jvm args, the cached data do not contain the jacoco execution file
 
-https://user-images.githubusercontent.com/419883/147940456-d0c96c90-f2b5-4574-8133-09647db9545a.mov
+# How to reproduce
 
-## How to use the template
+Launch a first time `./gradlew jacocoTestReport --console=plain`
 
-- Fork this repository
-  - On the main page click the `Use this Template` button
-  - Specify the user/org name and a repository name
-  - Select `Public` for repository type
-  - Select `Include all branches`
-  - Click `Create Repositorty from template`
-- Modify the project in the repository to reproduce the issue
-  - You can clone your new forked repository locally and push changes, as usual
-  - You can also edit your reprocer in an online editor by replacing `github.com` with `github.dev` in the URL (or by pressing the '.' key on the keyboard).
-- Adjust the [GitHub Action file](.github/workflows/run-reproducer.yml)
-  - You can configure the executed Gradle tasks as well as the environment (task options, log level, JVM version, operating system, etc)
-  - The documentation for the Gradle GitHub Action is available [here](https://github.com/gradle/gradle-build-action)
-- Verify that the reproducer exhibits the problem on the [GitHub Action page](https://github.com/gradle/gradle-issue-reproducer/actions)
-- Link your reproducer to the issue
+You will notice that both `:app:testReleaseUnitTest` and `:app:jacocoTestReport` are ran, which is expected.
+
+Then, `rm -r app/build/jacoco` to remove the execution data.
+
+Run again `./gradlew jacocoTestReport --console=plain`
+
+-> you will notice that the `:app:testReleaseUnitTest` was not executed (`FROM_CACHE`), which is expected. However the `:app:jacocoTestReport` is skipped, which is not expected.
+
+By opening `app/build` you will see that the `jacoco` folder, supposed to contain the jacoco execution data, is not created.
+
+# Workaround?
+
+To 'fix' the issue, all it takes is to remove the following line in `app/build.gradle`:
+
+```diff
+    testOptions.unitTests.all {
+        // this line breaks the cache for jacoco
+-       it.allJvmArgs = it.allJvmArgs + listOf("-Xmx4192M")
+        it.configure<JacocoTaskExtension> {
+            isIncludeNoLocationClasses = true
+            excludes = listOf("jdk.internal.*")
+        }
+    }
+```

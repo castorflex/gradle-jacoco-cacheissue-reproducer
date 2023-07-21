@@ -1,0 +1,23 @@
+[versions]
+junit = "4.13.2"
+junitJupiter = "5.9.3"
+kotlin = "1.8.20"
+
+[libraries]
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+junitJupiterBom = { module = "org.junit:junit-bom", version.ref = "junitJupiter" }
+junitJupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junitJupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine" }
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+
+[bundles]
+junit4 = [
+    "junit"
+]
+junit5 = [
+    "junitJupiterBom",
+    "junitJupiter",
+    "junitJupiterEngine",
+]
